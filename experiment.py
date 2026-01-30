@@ -6,22 +6,28 @@ from typing import Iterable, List, Sequence, Tuple
 import numpy as np
 
 
-DEFAULT_LOGSPACE_MIN = 10
-DEFAULT_LOGSPACE_MAX = 10000
-DEFAULT_LOGSPACE_POINTS = 13
+DEFAULT_LINEAR_MIN = 0
+DEFAULT_LINEAR_MAX = 1000
+DEFAULT_LINEAR_POINTS = 20
 
 
-def logspace_dims(start: int, stop: int, points: int) -> List[int]:
-    if start <= 0 or stop <= 0:
-        raise ValueError("logspace bounds must be positive")
+def linear_dims(start: int, stop: int, points: int) -> List[int]:
+    if start < 0 or stop <= 0:
+        raise ValueError("linear min must be nonnegative and max must be positive")
     if start >= stop:
-        raise ValueError("logspace min must be smaller than max")
+        raise ValueError("linear min must be smaller than max")
     if points < 2:
-        raise ValueError("logspace points must be at least 2")
-    values = np.logspace(math.log10(start), math.log10(stop), num=points)
+        raise ValueError("linear points must be at least 2")
+    if start == 0:
+        values = np.linspace(0, stop, num=points + 1)[1:]
+    else:
+        values = np.linspace(start, stop, num=points)
     dims = sorted({int(round(v)) for v in values})
-    dims = [d for d in dims if start <= d <= stop]
-    if start not in dims:
+    if start == 0:
+        dims = [d for d in dims if 0 < d <= stop]
+    else:
+        dims = [d for d in dims if start <= d <= stop]
+    if start > 0 and start not in dims:
         dims.insert(0, start)
     if stop not in dims:
         dims.append(stop)
@@ -148,26 +154,26 @@ def main() -> None:
         default="",
         help=(
             "Comma-separated list (e.g. 10,20,50) or range start:stop:step "
-            "(inclusive). If omitted, uses a log-spaced range."
+            "(inclusive). If omitted, uses a linear range."
         ),
     )
     parser.add_argument(
-        "--logspace-min",
+        "--linear-min",
         type=int,
-        default=DEFAULT_LOGSPACE_MIN,
-        help=f"Logspace min dimension (default: {DEFAULT_LOGSPACE_MIN})",
+        default=DEFAULT_LINEAR_MIN,
+        help=f"Linear min dimension, exclusive if 0 (default: {DEFAULT_LINEAR_MIN})",
     )
     parser.add_argument(
-        "--logspace-max",
+        "--linear-max",
         type=int,
-        default=DEFAULT_LOGSPACE_MAX,
-        help=f"Logspace max dimension (default: {DEFAULT_LOGSPACE_MAX})",
+        default=DEFAULT_LINEAR_MAX,
+        help=f"Linear max dimension (default: {DEFAULT_LINEAR_MAX})",
     )
     parser.add_argument(
-        "--logspace-points",
+        "--linear-points",
         type=int,
-        default=DEFAULT_LOGSPACE_POINTS,
-        help=f"Number of logspace points (default: {DEFAULT_LOGSPACE_POINTS})",
+        default=DEFAULT_LINEAR_POINTS,
+        help=f"Number of linear points (default: {DEFAULT_LINEAR_POINTS})",
     )
     parser.add_argument(
         "--trials",
@@ -218,7 +224,7 @@ def main() -> None:
 
     dims = parse_dims(args.dims)
     if not dims:
-        dims = logspace_dims(args.logspace_min, args.logspace_max, args.logspace_points)
+        dims = linear_dims(args.linear_min, args.linear_max, args.linear_points)
     epsilon = float(args.epsilon)
 
     header = "dimension | min | max | mean"
