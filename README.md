@@ -1,6 +1,6 @@
 # Almost-Orthogonal Vectors — Experiments
 
-Small utilities for running the greedy almost-orthogonal vector experiment and generating blog-ready plots.
+Code for the experiments and plots in the blog post [Almost Orthogonal Vectors](https://alyxya.com/blog/almost-orthogonal-vectors).
 
 ## Requirements
 
